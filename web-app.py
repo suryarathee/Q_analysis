@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertModel
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, random_split
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 map_to_label={'Generic Algorithms and STL': 0,
  'Associative Containers': 1,
  'Virtual Functions': 2,
