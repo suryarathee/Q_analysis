@@ -6,12 +6,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, random_split
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-file_path = 'final_questions.csv'
-df = pd.read_csv(file_path)
-questions = df['Question Text'].tolist()
-labels = df['Chapter_name'].tolist()
-#label_map = {label: idx for idx, label in enumerate(set(labels))}
-#map_to_label ={idx:label for idx, label in enumerate(set(labels))}
 map_to_label={'Generic Algorithms and STL': 0,
  'Associative Containers': 1,
  'Virtual Functions': 2,
@@ -50,37 +44,6 @@ max_length = 64
 batch_size = 8
 learning_rate = 4e-5 # (1e-5 =55%) (3e-5 = 65%) (8e-5=67%)
 num_epochs = 13
-class QuestionDataset(Dataset):
-    def __init__(self, questions, labels, tokenizer, max_length):
-        self.questions = questions
-        self.labels = labels
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-
-    def __len__(self):
-        return len(self.questions)
-
-    def __getitem__(self, idx):
-        question = self.questions[idx]
-        label = self.labels[idx]
-
-        encoding = (self.tokenizer.encode_plus(
-            question,
-            max_length=self.max_length,
-            padding='max_length',
-            truncation=True,
-            return_tensors='pt'
-        ))
-
-        input_ids = encoding['input_ids'].squeeze()
-        attention_mask = encoding['attention_mask'].squeeze()
-
-        return {
-            'input_ids': input_ids,
-            'attention_mask': attention_mask,
-            'label': torch.tensor(label, dtype=torch.long)
-        }
-
 
 class BERTClassifier(nn.Module):
     def __init__(self, bert_model_name, num_classes):
@@ -92,16 +55,7 @@ class BERTClassifier(nn.Module):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         cls_output = outputs.pooler_output
         return self.fc(cls_output)
-model = BERTClassifier('bert-base-uncased', num_classes).to(device)
-dataset = QuestionDataset(questions, labels, tokenizer, max_length)
-train_size = int(0.8* len(dataset))
-val_size = len(dataset) - train_size
-train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-optimizer = optim.AdamW(model.parameters(), lr=learning_rate)# why we used adamW
-#why we used cross entropy loss
-criterion = nn.CrossEntropyLoss()
+
 def predict_question(question, model, tokenizer, device, max_length=32):
     # Preprocess the question (tokenize)
     encoding = tokenizer.encode_plus(
