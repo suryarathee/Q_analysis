@@ -74,7 +74,7 @@ def predict_question(question, model, tokenizer, device, max_length=32):
         _, predicted_class = torch.max(outputs, 1)
 
     return predicted_class.item()
-SModel =torch.load('model_complete.pth')
+SModel =torch.load('model_complete.pth',map_location=torch.device('cpu'))
 def question_to_class(question):
     predicted_class = predict_question(question, SModel, tokenizer, device)
     return new_map_to_label[predicted_class]
